@@ -18,7 +18,7 @@ The client folder contains a [react app](https://reactjs.org/) using [vite](http
 3. Run `npm run dev` to start the application 
 4. Now you should be able to visit the app at http://127.0.0.1:5173/
 
-### Server
+### Server 
 
 The server folder contains a node.js server using [express](https://expressjs.com/). To run the server, follow these steps:
 
