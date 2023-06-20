@@ -1,26 +1,51 @@
 import { useState } from "react";
 import server from "./server";
+import { keccak256 } from "ethereum-cryptography/keccak.js";
+import { secp256k1 } from "ethereum-cryptography/secp256k1.js";
+import { hexToBytes, toHex, utf8ToBytes } from "ethereum-cryptography/utils.js";
 
-function Transfer({ address, setBalance }) {
-  const [sendAmount, setSendAmount] = useState("");
-  const [recipient, setRecipient] = useState("");
+function Transfer({ sendAmount, setSendAmount, recipientAddress, setRecipientAddress, privateKey, setPrivateKey, balance, setBalance}) {
 
-  const setValue = (setter) => (evt) => setter(evt.target.value);
+	function setValue(setter) {
+		return function(evt) {
+			setter(evt.target.value);
+		}
+	}
 
   async function transfer(evt) {
     evt.preventDefault();
-
-    try {
-      const {
-        data: { balance },
-      } = await server.post(`send`, {
-        sender: address,
-        amount: parseInt(sendAmount),
-        recipient,
+    // try {
+    //   const {
+    //     data: { balance },
+    //   } = await server.post(`send`, {
+    //     sender: address,
+    //     amount: parseInt(sendAmount),
+    //     recipient,
+    //   });
+    //   setBalance(balance);
+    // } catch (ex) {
+    //   alert(ex.response.data.message);
+    // }
+		try {
+			const transferMessage = {
+				recipientPulicKey : recipientAddress,
+				amount : sendAmount,
+			}
+			const transferMessageBytes = utf8ToBytes(JSON.stringify(transferMessage));
+			const transferMessageHash = keccak256(transferMessageBytes);
+			const signedMessage = secp256k1.sign(transferMessageHash, privateKey);
+      const signedMessageStr = {
+        r: signedMessage.r.toString(),
+        s: signedMessage.s.toString(),
+        recovery: signedMessage.recovery
+      }
+      await server.post(`send`, {
+        recipientPulicKey : recipientAddress,
+				amount : sendAmount,
+        signature : signedMessageStr
       });
-      setBalance(balance);
-    } catch (ex) {
-      alert(ex.response.data.message);
+		} catch (err) {
+      console.log(err.message); 
     }
   }
 
@@ -41,8 +66,8 @@ function Transfer({ address, setBalance }) {
         Recipient
         <input
           placeholder="Type an address, for example: 0x2"
-          value={recipient}
-          onChange={setValue(setRecipient)}
+          value={recipientAddress}
+          onChange={setValue(setRecipientAddress)}
         ></input>
       </label>
 

@@ -7,6 +7,8 @@ function App() {
   const [balance, setBalance] = useState(0);
   const [address, setAddress] = useState("");
   const [privateKey, setPrivateKey] = useState("");
+  const [sendAmount, setSendAmount] = useState(0);
+  const [recipientAddress, setRecipientAddress] = useState("");
 
   return (
     <div className="app">
@@ -18,7 +20,16 @@ function App() {
         privateKey={privateKey}
         setPrivateKey={setPrivateKey}
       />
-      <Transfer setBalance={setBalance} address={address} />
+      <Transfer 
+        sendAmount={sendAmount}
+        setSendAmount={setSendAmount}
+        recipientAddress={recipientAddress}
+        setRecipientAddress={setRecipientAddress}
+        privateKey={privateKey}
+        setPrivateKey={setPrivateKey}
+        balance={balance}
+        setBalance={setBalance}
+      />
     </div>
   );
 }

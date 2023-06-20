@@ -21,18 +21,19 @@ app.get("/balance/:address", (req, res) => {
 app.post("/send", (req, res) => {
   //TODO：get a signature from the client-side applicaiton
   // recover the public key from the signature
-  const { sender, recipient, amount } = req.body;
+  const { recipientPulicKey, amount, signature } = req.body;
+  console.log(recipientPulicKey, amount, signature);
 
-  setInitialBalance(sender);
-  setInitialBalance(recipient);
+  // setInitialBalance(sender);
+  // setInitialBalance(recipient);
 
-  if (balances[sender] < amount) {
-    res.status(400).send({ message: "Not enough funds!" });
-  } else {
-    balances[sender] -= amount;
-    balances[recipient] += amount;
-    res.send({ balance: balances[sender] });
-  }
+  // if (balances[sender] < amount) {
+  //   res.status(400).send({ message: "Not enough funds!" });
+  // } else {
+  //   balances[sender] -= amount;
+  //   balances[recipient] += amount;
+  //   res.send({ balance: balances[sender] });
+  // }
 });
 
 app.listen(port, () => {
