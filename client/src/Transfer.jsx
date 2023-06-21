@@ -4,7 +4,7 @@ import { keccak256 } from "ethereum-cryptography/keccak.js";
 import { secp256k1 } from "ethereum-cryptography/secp256k1.js";
 import { hexToBytes, toHex, utf8ToBytes } from "ethereum-cryptography/utils.js";
 
-function Transfer({ sendAmount, setSendAmount, recipientAddress, setRecipientAddress, privateKey, setPrivateKey, balance, setBalance}) {
+function Transfer({ sendAmount, setSendAmount, recipientAddress, setRecipientAddress, privateKey, setPrivateKey, balance, setBalance, address}) {
 
 	function setValue(setter) {
 		return function(evt) {
@@ -14,18 +14,6 @@ function Transfer({ sendAmount, setSendAmount, recipientAddress, setRecipientAdd
 
   async function transfer(evt) {
     evt.preventDefault();
-    // try {
-    //   const {
-    //     data: { balance },
-    //   } = await server.post(`send`, {
-    //     sender: address,
-    //     amount: parseInt(sendAmount),
-    //     recipient,
-    //   });
-    //   setBalance(balance);
-    // } catch (ex) {
-    //   alert(ex.response.data.message);
-    // }
 		try {
 			const transferMessage = {
 				recipientPulicKey : recipientAddress,
@@ -34,18 +22,21 @@ function Transfer({ sendAmount, setSendAmount, recipientAddress, setRecipientAdd
 			const transferMessageBytes = utf8ToBytes(JSON.stringify(transferMessage));
 			const transferMessageHash = keccak256(transferMessageBytes);
 			const signedMessage = secp256k1.sign(transferMessageHash, privateKey);
-      const signedMessageStr = {
-        r: signedMessage.r.toString(),
-        s: signedMessage.s.toString(),
-        recovery: signedMessage.recovery
-      }
+      console.log(signedMessage);
+      const signatureCompactHex = signedMessage.toCompactHex();
+      console.log(signatureCompactHex);
       await server.post(`send`, {
         recipientPulicKey : recipientAddress,
 				amount : sendAmount,
-        signature : signedMessageStr
+        signature : signatureCompactHex,
+        recoveryId : signedMessage.recovery,
+        messageHash: toHex(transferMessageHash)
       });
+      const updateBalance = await server.get(`balance/${address}`);
+      setBalance(updateBalance.data.balance)
 		} catch (err) {
-      console.log(err.message); 
+      console.log(err);
+      alert(err.response.data.message);
     }
   }
 

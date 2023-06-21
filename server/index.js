@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const port = 3042;
+const { secp256k1 } = require("ethereum-cryptography/secp256k1");
+const { toHex, hexToBytes } = require("ethereum-cryptography/utils");
 
 app.use(cors());
 app.use(express.json());
@@ -21,19 +23,23 @@ app.get("/balance/:address", (req, res) => {
 app.post("/send", (req, res) => {
   //TODO：get a signature from the client-side applicaiton
   // recover the public key from the signature
-  const { recipientPulicKey, amount, signature } = req.body;
-  console.log(recipientPulicKey, amount, signature);
-
-  // setInitialBalance(sender);
-  // setInitialBalance(recipient);
-
-  // if (balances[sender] < amount) {
-  //   res.status(400).send({ message: "Not enough funds!" });
-  // } else {
-  //   balances[sender] -= amount;
-  //   balances[recipient] += amount;
-  //   res.send({ balance: balances[sender] });
-  // }
+  const { recipientPulicKey, amount, signature, recoveryId, messageHash} = req.body;
+  const signatureRecovery = secp256k1.Signature.fromCompact(signature);
+  signatureRecovery.recovery = recoveryId;
+  const publicKey = signatureRecovery.recoverPublicKey(messageHash).toHex();
+  if ( publicKey in balances ) {
+    if (balances[publicKey] < amount) {
+      res.status(400).send({ message: "Not enough funds!" });
+    } else {
+      const transferAmount = parseFloat(amount);
+      balances[publicKey] -= transferAmount;
+      balances[recipientPulicKey] += transferAmount;
+      res.send({ balance: balances[publicKey] });
+      console.log(balances);
+    }
+  } else {
+    res.status(400).send({ message: "invalid account, check your private key!" });
+  }
 });
 
 app.listen(port, () => {
