@@ -27,7 +27,7 @@ app.get("/balance/:address", (req, res) => {
 app.post("/send", (req, res) => {
   //TODO：get a signature from the client-side applicaiton
   // recover the public key from the signature
-  const { recipientPulicKey, amount, signature, recoveryId, messageHash} = req.body;
+  const { recipientPublicKey, amount, signature, recoveryId, messageHash} = req.body;
   const signatureRecovery = secp256k1.Signature.fromCompact(signature);
   signatureRecovery.recovery = recoveryId;
   const publicKey = signatureRecovery.recoverPublicKey(messageHash).toHex();
@@ -37,7 +37,7 @@ app.post("/send", (req, res) => {
     } else {
       const transferAmount = parseFloat(amount);
       balances[publicKey] -= transferAmount;
-      balances[recipientPulicKey] += transferAmount;
+      balances[recipientPublicKey] += transferAmount;
       res.send({ balance: balances[publicKey] });
       console.log(balances);
     }

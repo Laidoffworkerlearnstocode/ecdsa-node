@@ -4,7 +4,7 @@ import { keccak256 } from "ethereum-cryptography/keccak.js";
 import { secp256k1 } from "ethereum-cryptography/secp256k1.js";
 import { hexToBytes, toHex, utf8ToBytes } from "ethereum-cryptography/utils.js";
 
-function Transfer({ sendAmount, setSendAmount, recipientAddress, setRecipientAddress, privateKey, setPrivateKey, balance, setBalance, address}) {
+function Transfer({ sendAmount, setSendAmount, recipientAddress, setRecipientAddress, privateKey, setBalance, address, error, setError}) {
 
 	function setValue(setter) {
 		return function(evt) {
@@ -12,8 +12,39 @@ function Transfer({ sendAmount, setSendAmount, recipientAddress, setRecipientAdd
 		}
 	}
 
+  const isValidPrivateKey = (value) => {
+    const isHex = /^[0-9a-fA-F]+$/.test(value);
+    return value.length === 64 && isHex;
+  }
+  const isValidRecipientAddress = (value) => {
+    const isHex = /^[0-9a-fA-F]+$/.test(value);
+    return value.length === 66 && isHex;
+  }
+  const isValidSendAmount = (value) => {
+    const isFloat = /^[0-9]+(\.[0-9]+)?$/.test(value);
+    return isFloat && parseFloat(value) > 0;
+  }
+
+  function formValidate() {
+    if (!isValidPrivateKey(privateKey)) {
+      return "Invalid private key!";
+    }
+    if (!isValidRecipientAddress(recipientAddress)) {
+      return "Invalid recipient address!";
+    }
+    if (!isValidSendAmount(sendAmount)) {
+      return "Invalid send amount!";
+    }
+    return null;
+  }
+
   async function transfer(evt) {
     evt.preventDefault();
+    const error = formValidate();
+    if (error) {
+      alert(error);
+      return;
+    }
 		try {
 			const transferMessage = {
 				recipientPulicKey : recipientAddress,
@@ -22,11 +53,9 @@ function Transfer({ sendAmount, setSendAmount, recipientAddress, setRecipientAdd
 			const transferMessageBytes = utf8ToBytes(JSON.stringify(transferMessage));
 			const transferMessageHash = keccak256(transferMessageBytes);
 			const signedMessage = secp256k1.sign(transferMessageHash, privateKey);
-      console.log(signedMessage);
       const signatureCompactHex = signedMessage.toCompactHex();
-      console.log(signatureCompactHex);
       await server.post(`send`, {
-        recipientPulicKey : recipientAddress,
+        recipientPublicKey : recipientAddress,
 				amount : sendAmount,
         signature : signatureCompactHex,
         recoveryId : signedMessage.recovery,
@@ -35,7 +64,6 @@ function Transfer({ sendAmount, setSendAmount, recipientAddress, setRecipientAdd
       const updateBalance = await server.get(`balance/${address}`);
       setBalance(updateBalance.data.balance)
 		} catch (err) {
-      console.log(err);
       alert(err.response.data.message);
     }
   }

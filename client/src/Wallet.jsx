@@ -13,6 +13,8 @@ function Wallet({ address, setAddress, balance, setBalance, privateKey, setPriva
     const privateKey = evt.target.value;
     setPrivateKey(privateKey);
     if (!isValidPrivateKey(privateKey)) {
+      setBalance(0);
+      setAddress("");
       setError("Invalid private key!");
       console.log("Invalid private key!");
       return;

@@ -33,6 +33,8 @@ function App() {
         balance={balance}
         setBalance={setBalance}
         address={address}
+        error={error}
+        setError={setError}
       />
     </div>
   );
