@@ -16,8 +16,12 @@ const balances = {
 
 app.get("/balance/:address", (req, res) => {
   const { address } = req.params;
-  const balance = balances[address] || 0;
-  res.send({ balance });
+  if (address in balances) {
+    const balance = balances[address] || 0;
+    res.send({ balance });
+  } else {
+    res.status(400).send({ message: "invalid account, check your private key!" });
+  }
 });
 
 app.post("/send", (req, res) => {

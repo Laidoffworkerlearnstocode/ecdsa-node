@@ -4,6 +4,7 @@ import "./App.scss";
 import { useState } from "react";
 
 function App() {
+  const [error, setError] = useState(null);
   const [balance, setBalance] = useState(0);
   const [address, setAddress] = useState("");
   const [privateKey, setPrivateKey] = useState("");
@@ -19,6 +20,8 @@ function App() {
         setAddress={setAddress}
         privateKey={privateKey}
         setPrivateKey={setPrivateKey}
+        error={error}
+        setError={setError}
       />
       <Transfer 
         sendAmount={sendAmount}
